@@ -12,7 +12,7 @@ set(HEADERS
 
 
 add_library(compressed_streams STATIC ${HEADERS} ${SOURCES})
-target_link_libraries(compressed_streams zstd)
+target_link_libraries(compressed_streams ${ZSTD_LIBRARY})
 
 
 # Now simply link against gtest or gtest_main as needed. Eg
