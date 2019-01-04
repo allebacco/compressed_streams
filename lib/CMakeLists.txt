@@ -4,6 +4,7 @@
 set(SOURCES
     src/zstd_stream.cpp
     src/zlib_stream.cpp
+    src/lz4_stream.cpp
     src/internal/strict_fstream.hpp
     src/internal/zstr.hpp
 )
@@ -11,12 +12,13 @@ set(SOURCES
 set(HEADERS
     include/compressed_streams/zstd_stream.h
     include/compressed_streams/zlib_stream.h
+    include/compressed_streams/lz4_stream.h
     include/compressed_streams/istreambuf_view.h
 )
 
 
 add_library(compressed_streams STATIC ${HEADERS} ${SOURCES})
-target_link_libraries(compressed_streams ${ZSTD_LIBRARY} ${ZLIB_LIBRARY})
+target_link_libraries(compressed_streams ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY})
 add_dependencies(compressed_streams libzstd zlib)
 
 
