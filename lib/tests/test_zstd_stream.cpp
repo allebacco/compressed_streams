@@ -6,6 +6,7 @@
 #include <sstream>
 #include <strstream>
 #include <gtest/gtest.h>
+#include <zstd.h>
 
 #include "../include/compressed_streams/zstd_stream.h"
 
