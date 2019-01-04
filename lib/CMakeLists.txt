@@ -16,7 +16,8 @@ set(HEADERS
 
 
 add_library(compressed_streams STATIC ${HEADERS} ${SOURCES})
-target_link_libraries(compressed_streams ${ZSTD_LIBRARY} z)
+target_link_libraries(compressed_streams ${ZSTD_LIBRARY} ${ZLIB_LIBRARY})
+add_dependencies(compressed_streams libzstd zlib)
 
 
 set(TEST_SOURCES

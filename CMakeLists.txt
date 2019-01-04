@@ -13,10 +13,9 @@ link_directories(
 
 include(cmake/googletest.cmake)
 include(cmake/zstd.cmake)
+include(cmake/zlib.cmake)
 enable_testing()
 
-
-include_directories(${ZSTD_INCLUDE_DIR})
-link_directories(${ZSTD_LIB_DIR})
+include_directories(${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR})
 
 add_subdirectory(lib)
