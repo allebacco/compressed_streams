@@ -37,10 +37,14 @@ set(TEST_SOURCES
     tests/test_istream_view.cpp
 )
 
+set(TEST_COMMON
+    tests/common.h
+)
+
 foreach(TEST_FILE ${TEST_SOURCES})
     get_filename_component(NAME ${TEST_FILE} NAME_WE)
 
-    add_executable(${NAME} ${TEST_FILE})
+    add_executable(${NAME} ${TEST_FILE} ${TEST_COMMON})
     target_link_libraries(${NAME} PRIVATE ${GTEST_LIBRARY} compressed_streams Threads::Threads)
     target_include_directories(${NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${GTEST_INCLUDE_DIR})
     add_test(NAME ${NAME} COMMAND ${NAME})
