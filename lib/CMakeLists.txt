@@ -1,10 +1,12 @@
 
+find_package(Threads REQUIRED)
 
 
 set(SOURCES
     src/zstd_stream.cpp
     src/zlib_stream.cpp
     src/lz4_stream.cpp
+    src/istream_view.cpp
     src/internal/strict_fstream.hpp
     src/internal/zstr.hpp
 )
@@ -13,13 +15,19 @@ set(HEADERS
     include/compressed_streams/zstd_stream.h
     include/compressed_streams/zlib_stream.h
     include/compressed_streams/lz4_stream.h
-    include/compressed_streams/istreambuf_view.h
+    include/compressed_streams/istream_view.h
 )
 
 
 add_library(compressed_streams STATIC ${HEADERS} ${SOURCES})
-target_link_libraries(compressed_streams ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY})
-add_dependencies(compressed_streams libzstd zlib)
+target_link_libraries(compressed_streams
+    PRIVATE
+        ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads
+)
+target_include_directories(compressed_streams
+    PRIVATE 
+        ${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${LZ4_INCLUDE_DIR}
+)
 
 
 set(TEST_SOURCES
@@ -31,10 +39,7 @@ foreach(TEST_FILE ${TEST_SOURCES})
     get_filename_component(NAME ${TEST_FILE} NAME_WE)
 
     add_executable(${NAME} ${TEST_FILE})
-    target_link_libraries(${NAME} gtest_main compressed_streams)
+    target_link_libraries(${NAME} PRIVATE ${GTEST_LIBRARY} compressed_streams Threads::Threads)
+    target_include_directories(${NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${GTEST_INCLUDE_DIR})
     add_test(NAME ${NAME} COMMAND ${NAME})
 endforeach()
-
-#add_executable(test_zstd_stream tests/test_zstd_stream.cpp)
-#target_link_libraries(test_zstd_stream gtest_main compressed_streams)
-#add_test(NAME test_zstd_stream COMMAND test_zstd_stream)

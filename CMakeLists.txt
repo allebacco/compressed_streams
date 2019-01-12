@@ -15,8 +15,7 @@ include(cmake/googletest.cmake)
 include(cmake/zstd.cmake)
 include(cmake/zlib.cmake)
 include(cmake/lz4.cmake)
-enable_testing()
 
-include_directories(${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${LZ4_INCLUDE_DIR})
+enable_testing()
 
 add_subdirectory(lib)

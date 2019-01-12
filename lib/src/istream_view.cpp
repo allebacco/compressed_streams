@@ -1,7 +1,5 @@
-#ifndef COMPRESSED_STREAMS_ISTREAMBUF_VIEW_H
-#define COMPRESSED_STREAMS_ISTREAMBUF_VIEW_H
 
-#include <iostream>
+#include "../include/compressed_streams/istream_view.h"
 
 namespace compressed_streams
 {
@@ -40,19 +38,16 @@ private:
 };
 
 
-class IStreamView: public std::istream
+IStreamView::IStreamView(const char *data, const size_t size):
+    std::istream(new IStreamBufView(data, size))
+{}
+
+
+IStreamView::~IStreamView()
 {
-public:
-    IStreamView(const char* data, const size_t size):
-        std::istream(new IStreamBufView(data, size))
-    {}
+    delete rdbuf();
+}
 
-    virtual ~IStreamView()
-    {
-        delete rdbuf();
-    }
-};
 
-} // namespace compressed_streams
 
-#endif // COMPRESSED_STREAMS_ISTREAMBUF_VIEW_H
+}   // compressed streams
