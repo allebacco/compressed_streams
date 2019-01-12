@@ -34,6 +34,7 @@ set(TEST_SOURCES
     tests/test_zstd_stream.cpp
     tests/test_zlib_stream.cpp
     tests/test_lz4_stream.cpp
+    tests/test_istream_view.cpp
 )
 
 foreach(TEST_FILE ${TEST_SOURCES})

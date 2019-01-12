@@ -130,7 +130,7 @@ public:
         if(LZ4F_isError(status))
             throw std::runtime_error("Error during LZ4 istream creation");
 
-        setg(&m_src_buffer.front(), &m_src_buffer.front(), &m_src_buffer.front());
+        setg(&m_dst_buffer.front(), &m_dst_buffer.front(), &m_dst_buffer.front());
     }
 
     virtual ~Lz4IStreamBuf()
