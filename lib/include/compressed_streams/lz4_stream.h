@@ -20,6 +20,15 @@ public:
 };
 
 
+class Lz4IStream: public std::istream
+{
+public:
+    Lz4IStream(std::istream& stream);
+
+    virtual ~Lz4IStream();
+};
+
+
 }   // namespace compressed_streams
 
 #endif // COMPRESSED_STREAMS_LZ4_STREAM_H

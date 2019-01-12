@@ -74,7 +74,9 @@ private:
 
     void initialize_stream()
     {
-        size_t header_size = LZ4F_compressBegin(m_compression_ctx, m_tmp_buffer.data(), m_tmp_buffer.size(), &m_preferences);
+        size_t header_size = LZ4F_compressBegin(
+                    m_compression_ctx, m_tmp_buffer.data(), m_tmp_buffer.size(), &m_preferences
+        );
         if(LZ4F_isError(header_size))
             throw std::runtime_error("Error during LZ4 stream initialization");
 
@@ -113,6 +115,85 @@ Lz4OStream::~Lz4OStream()
     delete rdbuf();
 }
 
+class Lz4IStreamBuf: public std::streambuf
+{
+public:
+    Lz4IStreamBuf(std::istream* source, size_t internal_buffer_size=4096):
+        m_source(source),
+        m_context(nullptr),
+        m_src_buffer(internal_buffer_size),
+        m_dst_buffer(internal_buffer_size),
+        m_src_offset(0),
+        m_src_size(0)
+    {
+        size_t status = LZ4F_createDecompressionContext(&m_context, LZ4F_VERSION);
+        if(LZ4F_isError(status))
+            throw std::runtime_error("Error during LZ4 istream creation");
 
+        setg(&m_src_buffer.front(), &m_src_buffer.front(), &m_src_buffer.front());
+    }
+
+    virtual ~Lz4IStreamBuf()
+    {
+        LZ4F_freeDecompressionContext(m_context);
+    }
+
+protected:
+
+    virtual int_type underflow() override
+    {
+        while(true)
+        {
+            if(m_src_offset == m_src_size)
+            {
+                m_source->read(&m_src_buffer.front(), m_src_buffer.size());
+                m_src_size = static_cast<size_t>(m_source->gcount());
+                m_src_offset = 0;
+            }
+
+            if(m_src_size == 0)
+                return traits_type::eof();
+
+            size_t src_avalable = m_src_size - m_src_offset;
+            size_t dest_size = m_dst_buffer.size();
+            size_t ret = LZ4F_decompress(
+                m_context,
+                &m_dst_buffer.front(), &dest_size,
+                &m_src_buffer.front() + m_src_offset, &src_avalable, nullptr
+            );
+            m_src_offset += src_avalable;
+
+            if (LZ4F_isError(ret) != 0)
+                throw std::runtime_error("Error during LZ4 decompression");
+
+            if(dest_size > 0)
+            {
+                setg(&m_dst_buffer.front(), &m_dst_buffer.front(), &m_dst_buffer.front() + dest_size);
+                return traits_type::to_int_type(*gptr());
+            }
+        }
+
+        return traits_type::eof();
+    }
+
+private:
+    std::istream* m_source;
+    LZ4F_dctx* m_context;
+    std::vector<char> m_src_buffer;
+    std::vector<char> m_dst_buffer;
+    size_t m_src_offset;
+    size_t m_src_size;
+};
+
+
+Lz4IStream::Lz4IStream(std::istream& stream):
+    std::istream(new Lz4IStreamBuf(&stream))
+{}
+
+
+Lz4IStream::~Lz4IStream()
+{
+    delete rdbuf();
+}
 
 }   // namespace compressed_streams
