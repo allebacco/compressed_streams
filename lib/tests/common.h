@@ -86,7 +86,7 @@ static std::vector<char> read_one_byte_at_time_from_stream(const std::string& se
     IStreamType compressed_istream(istream);
 
     for(size_t i=0; i<read_data.size(); ++i)
-        compressed_istream.read(read_data.data(), 1);
+        compressed_istream.read(&read_data[i], 1);
 
     return read_data;
 }
@@ -118,7 +118,7 @@ public:
 TYPED_TEST_SUITE_P(IOStreamTest);
 
 
-TYPED_TEST_P(IOStreamTest, Compression_WriteAllAtOnce)
+TYPED_TEST_P(IOStreamTest, WriteAllAtOnce)
 {
     using OStreamType = typename std::tuple_element<0, TypeParam>::type;
     using IStreamType = typename std::tuple_element<1, TypeParam>::type;
@@ -130,7 +130,7 @@ TYPED_TEST_P(IOStreamTest, Compression_WriteAllAtOnce)
 }
 
 
-TYPED_TEST_P(IOStreamTest, Compression_WriteOneByteAtATime)
+TYPED_TEST_P(IOStreamTest, WriteOneByteAtATime)
 {
     using OStreamType = typename std::tuple_element<0, TypeParam>::type;
     using IStreamType = typename std::tuple_element<1, TypeParam>::type;
@@ -142,7 +142,7 @@ TYPED_TEST_P(IOStreamTest, Compression_WriteOneByteAtATime)
 }
 
 
-TYPED_TEST_P(IOStreamTest, Compression_PutOneByteAtATime)
+TYPED_TEST_P(IOStreamTest, PutOneByteAtATime)
 {
     using OStreamType = typename std::tuple_element<0, TypeParam>::type;
     using IStreamType = typename std::tuple_element<1, TypeParam>::type;
@@ -154,9 +154,35 @@ TYPED_TEST_P(IOStreamTest, Compression_PutOneByteAtATime)
 }
 
 
+TYPED_TEST_P(IOStreamTest, ReadOneByteAtATime)
+{
+    using OStreamType = typename std::tuple_element<0, TypeParam>::type;
+    using IStreamType = typename std::tuple_element<1, TypeParam>::type;
+
+    std::string serialized = write_at_once_to_stream<OStreamType>(DATA_REF);
+    std::vector<char> test_data = read_one_byte_at_time_from_stream<IStreamType>(serialized, DATA_REF.size());
+
+    EXPECT_EQ(DATA_REF, test_data);
+}
+
+
+TYPED_TEST_P(IOStreamTest, GetOneByteAtATime)
+{
+    using OStreamType = typename std::tuple_element<0, TypeParam>::type;
+    using IStreamType = typename std::tuple_element<1, TypeParam>::type;
+
+    std::string serialized = write_at_once_to_stream<OStreamType>(DATA_REF);
+    std::vector<char> test_data = get_one_byte_at_time_from_stream<IStreamType>(serialized, DATA_REF.size());
+
+    EXPECT_EQ(DATA_REF, test_data);
+}
+
+
 REGISTER_TYPED_TEST_SUITE_P(IOStreamTest,
-                                Compression_WriteAllAtOnce,
-                                Compression_WriteOneByteAtATime,
-                                Compression_PutOneByteAtATime);
+                                WriteAllAtOnce,
+                                WriteOneByteAtATime,
+                                PutOneByteAtATime,
+                                ReadOneByteAtATime,
+                                GetOneByteAtATime);
 
 #endif // COMMON_H
