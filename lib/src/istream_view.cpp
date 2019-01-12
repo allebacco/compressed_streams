@@ -12,6 +12,14 @@ public:
         char* data_start = const_cast<char*>(data);
         setg(data_start, data_start, data_start + len);
     }
+
+    virtual ~IStreamBufView()
+    {}
+
+    virtual std::streamsize showmanyc()
+    {
+        return std::distance(gptr(), epptr());
+    }
 };
 
 

@@ -7,6 +7,7 @@ set(SOURCES
     src/zlib_stream.cpp
     src/lz4_stream.cpp
     src/istream_view.cpp
+    src/byte_ostream.cpp
     src/internal/strict_fstream.hpp
     src/internal/zstr.hpp
 )
@@ -16,6 +17,7 @@ set(HEADERS
     include/compressed_streams/zlib_stream.h
     include/compressed_streams/lz4_stream.h
     include/compressed_streams/istream_view.h
+    include/compressed_streams/byte_ostream.h
 )
 
 
