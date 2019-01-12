@@ -1,5 +1,16 @@
 
 
+#include "../include/compressed_streams/zstd_stream.h"
+
+#include "common.h"
+
+using namespace compressed_streams;
+
+using ZstdIOStreamTypes = ::testing::Types<std::tuple<ZstdOStream, ZstdIStream>>;
+INSTANTIATE_TYPED_TEST_SUITE_P(ZstdIOStreamTest, IOStreamTest, ZstdIOStreamTypes);
+
+
+/*
 #include <algorithm>
 #include <numeric>
 #include <vector>
@@ -60,4 +71,4 @@ TEST(ZstdStream, Decompress)
     EXPECT_EQ(data, test_data);
     }
 }
-
+*/

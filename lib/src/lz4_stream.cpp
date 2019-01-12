@@ -22,7 +22,7 @@ static constexpr LZ4F_preferences_t DEFAULT_PREFERENCES = {
 };
 
 
-class Lz4OStreamBuf: public std::streambuf
+class Lz4OStreamBuf final: public std::streambuf
 {
 public:
     Lz4OStreamBuf(std::streambuf* buffer, int compression_level=0):
@@ -38,11 +38,11 @@ public:
         // setup buffers
         size_t internal_buffer_size = LZ4F_compressBound(0, &m_preferences);
         internal_buffer_size = std::max<size_t>(internal_buffer_size, LZ4F_HEADER_SIZE_MAX) +1;
-        m_input_buffer.resize(internal_buffer_size);
+        m_write_area.resize(internal_buffer_size);
         m_compression_buffer.resize(internal_buffer_size);
 
         // setup the write are buffer. Last byte is for the overflow operation
-        setp(&m_input_buffer.front(), &m_input_buffer.front() + m_input_buffer.size() -1);
+        setp(&m_write_area.front(), &m_write_area.front() + m_write_area.size() -1);
 
         initialize_stream();
     }
@@ -55,23 +55,6 @@ public:
 
 protected:
 
-    /*
-    virtual std::streamsize xsputn(const char_type* data, std::streamsize data_size) override
-    {
-        size_t compressed_size = LZ4F_compressUpdate(
-            m_compression_ctx,
-            m_input_buffer.data(), m_input_buffer.size(),
-            data, data_size,
-            nullptr
-        );
-
-        if(LZ4F_isError(compressed_size))
-            throw std::runtime_error("Error during LZ4 stream writing");
-
-        return m_sink->sputn(m_input_buffer.data(), compressed_size);
-    }
-    */
-
     virtual int_type overflow(int_type ch) override
     {        
         *pptr() = traits_type::to_char_type(ch);
@@ -80,6 +63,12 @@ protected:
         compress_buffer();
 
         return ch;
+    }
+
+    virtual int sync() override
+    {
+        compress_buffer();
+        return m_sink->pubsync();
     }
 
 private:
@@ -125,7 +114,7 @@ private:
         if(LZ4F_isError(compressed_size))
             throw std::runtime_error("Error during LZ4 stream writing");
 
-        setp(&m_input_buffer.front(), &m_input_buffer.front() + m_input_buffer.size() -1);
+        setp(&m_write_area.front(), &m_write_area.front() + m_write_area.size() -1);
 
         return m_sink->sputn(m_compression_buffer.data(), compressed_size);
     }
@@ -134,29 +123,19 @@ private:
     std::streambuf* m_sink;
     LZ4F_cctx* m_compression_ctx;
     LZ4F_preferences_t m_preferences;
-    std::vector<char> m_input_buffer;
+    std::vector<char> m_write_area;
     std::vector<char> m_compression_buffer;
 };
 
 
-
-Lz4OStream::Lz4OStream(std::ostream &stream, int compression_level):
-    std::ostream(new Lz4OStreamBuf(stream.rdbuf(), compression_level))
-{}
-
-Lz4OStream::~Lz4OStream()
-{
-    delete rdbuf();
-}
-
-class Lz4IStreamBuf: public std::streambuf
+class Lz4IStreamBuf final: public std::streambuf
 {
 public:
     Lz4IStreamBuf(std::streambuf* source, size_t internal_buffer_size=4096):
         m_source(source),
         m_context(nullptr),
         m_src_buffer(internal_buffer_size),
-        m_dst_buffer(internal_buffer_size),
+        m_read_area(internal_buffer_size),
         m_src_offset(0),
         m_src_size(0)
     {
@@ -164,7 +143,7 @@ public:
         if(LZ4F_isError(status))
             throw std::runtime_error("Error during LZ4 istream creation");
 
-        setg(&m_dst_buffer.front(), &m_dst_buffer.front(), &m_dst_buffer.front());
+        setg(&m_read_area.front(), &m_read_area.front(), &m_read_area.front());
     }
 
     virtual ~Lz4IStreamBuf()
@@ -188,10 +167,10 @@ protected:
                 return traits_type::eof();
 
             size_t src_avalable = m_src_size - m_src_offset;
-            size_t dest_size = m_dst_buffer.size();
+            size_t dest_size = m_read_area.size();
             size_t ret = LZ4F_decompress(
                 m_context,
-                &m_dst_buffer.front(), &dest_size,
+                &m_read_area.front(), &dest_size,
                 &m_src_buffer.front() + m_src_offset, &src_avalable, nullptr
             );
             m_src_offset += src_avalable;
@@ -201,7 +180,7 @@ protected:
 
             if(dest_size > 0)
             {
-                setg(&m_dst_buffer.front(), &m_dst_buffer.front(), &m_dst_buffer.front() + dest_size);
+                setg(&m_read_area.front(), &m_read_area.front(), &m_read_area.front() + dest_size);
                 return traits_type::to_int_type(*gptr());
             }
         }
@@ -213,11 +192,20 @@ private:
     std::streambuf* m_source;
     LZ4F_dctx* m_context;
     std::vector<char> m_src_buffer;
-    std::vector<char> m_dst_buffer;
+    std::vector<char> m_read_area;
     size_t m_src_offset;
     size_t m_src_size;
 };
 
+
+Lz4OStream::Lz4OStream(std::ostream &stream, int compression_level):
+    std::ostream(new Lz4OStreamBuf(stream.rdbuf(), compression_level))
+{}
+
+Lz4OStream::~Lz4OStream()
+{
+    delete rdbuf();
+}
 
 Lz4IStream::Lz4IStream(std::istream& stream):
     std::istream(new Lz4IStreamBuf(stream.rdbuf()))

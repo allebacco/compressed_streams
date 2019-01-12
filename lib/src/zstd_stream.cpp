@@ -9,164 +9,157 @@
 namespace compressed_streams
 {
 
-class ZstdOStreamBuf: public std::streambuf
+class ZstdOStreamBuf final: public std::streambuf
 {
 public:
-    ZstdOStreamBuf(std::streambuf* buffer, int compression_level=ZSTD_CLEVEL_DEFAULT, size_t internal_buffer_size=4096):
-        m_buffer(buffer),
-        m_zstd_cstream(ZSTD_createCStream()),
-        m_tmp_buffer(internal_buffer_size)
+    ZstdOStreamBuf(std::streambuf* buffer, int compression_level=ZSTD_CLEVEL_DEFAULT):
+        m_sink(buffer),
+        m_context(ZSTD_createCStream()),
+        m_input_buffer(ZSTD_CStreamInSize()),
+        m_compression_buffer(ZSTD_CStreamOutSize())
     {
-        ZSTD_initCStream(m_zstd_cstream, compression_level);
+        // setup the write are buffer. Last byte is for the overflow operation
+        setp(&m_input_buffer.front(), &m_input_buffer.front() + m_input_buffer.size() -1);
+
+        initialize_stream(compression_level);
     }
 
     virtual ~ZstdOStreamBuf()
     {
-        size_t ret = 0;
-        do
-        {
-            ZSTD_outBuffer output = { m_tmp_buffer.data(), m_tmp_buffer.size(), 0 };
+        finalize_stream();
 
-            ret = ZSTD_endStream(m_zstd_cstream, &output);
-            if (!ZSTD_isError(ret))
-                m_buffer->sputn(m_tmp_buffer.data(), output.pos);
-
-        } while(ret > 0 && !ZSTD_isError(ret));
-
-        ZSTD_freeCStream(m_zstd_cstream);
+        ZSTD_freeCStream(m_context);
     }
 
 protected:
 
-    std::streamsize xsputn(const char_type* data, std::streamsize data_size) override
-    {
-        std::streamsize bytes_written = 0;
-        ZSTD_inBuffer input {data, static_cast<size_t>(data_size), 0};
-
-        while (input.pos < input.size)
-        {
-            ZSTD_outBuffer output = { m_tmp_buffer.data(), m_tmp_buffer.size(), 0 };
-            size_t toRead = ZSTD_compressStream(m_zstd_cstream, &output , &input);
-            if (ZSTD_isError(toRead)) {
-
-            }
-            bytes_written += m_buffer->sputn(m_tmp_buffer.data(), output.pos);
-        }
-
-        return bytes_written;
-    }
-
     int_type overflow(int_type ch) override
     {
-        const char data = traits_type::to_char_type(ch);
-        return static_cast<int_type>(xsputn(&data, 1));
+        *pptr() = traits_type::to_char_type(ch);
+        pbump(1);
+
+        compress_buffer();
+
+        return ch;
     }
 
     virtual int sync() override
     {
-        size_t ret = 0;
-        do
-        {
-            ZSTD_outBuffer output = { m_tmp_buffer.data(), m_tmp_buffer.size(), 0 };
-
-            ret = ZSTD_flushStream(m_zstd_cstream, &output);
-            if (ZSTD_isError(ret))
-                throw std::logic_error("Compression finalization error");
-
-            m_buffer->sputn(m_tmp_buffer.data(), output.pos);
-
-        } while(ret > 0);
-
-        return m_buffer->pubsync();
+        compress_buffer();
+        return m_sink->pubsync();
     }
 
 private:
-    std::streambuf* m_buffer;
-    ZSTD_CStream* m_zstd_cstream;
-    std::vector<char> m_tmp_buffer;
+
+    void initialize_stream(int compression_level)
+    {
+        ZSTD_initCStream(m_context, compression_level);
+    }
+
+    void finalize_stream()
+    {
+        compress_buffer();
+
+        size_t ret = 0;
+        do
+        {
+            ZSTD_outBuffer output = { m_compression_buffer.data(), m_compression_buffer.size(), 0 };
+
+            ret = ZSTD_endStream(m_context, &output);
+            if (!ZSTD_isError(ret))
+                m_sink->sputn(m_compression_buffer.data(), output.pos);
+
+        } while(ret > 0 && !ZSTD_isError(ret));
+    }
+
+    void compress_buffer()
+    {
+        size_t num_bytes = std::distance(pbase(), pptr());
+        ZSTD_inBuffer input {pbase(), num_bytes, 0};
+
+        while(input.pos < input.size)
+        {
+            ZSTD_outBuffer output = {m_compression_buffer.data(), m_compression_buffer.size(), 0};
+            size_t ret = ZSTD_compressStream(m_context, &output , &input);
+            if(ZSTD_isError(ret))
+                throw std::runtime_error("Error during ZSTD stream write");
+
+            m_sink->sputn(m_compression_buffer.data(), output.pos);
+        }
+
+        setp(&m_input_buffer.front(), &m_input_buffer.front() + m_input_buffer.size() -1);
+    }
+
+private:
+    std::streambuf* m_sink;
+    ZSTD_CStream* m_context;
+    std::vector<char> m_input_buffer;
+    std::vector<char> m_compression_buffer;
 };
 
 
-class ZstdIStreamBuf: public std::streambuf
+class ZstdIStreamBuf final: public std::streambuf
 {
 public:
-    ZstdIStreamBuf(std::streambuf* buffer, size_t internal_buffer_size=4096):
-        m_src_buffer(buffer),
-        m_zstd_dstream(ZSTD_createDStream()),
-        m_tmp_buffer_memory(internal_buffer_size)
+
+    ZstdIStreamBuf(std::streambuf* source):
+        m_source(source),
+        m_context(ZSTD_createDStream()),
+        m_src_buffer(ZSTD_CStreamInSize()),
+        m_read_area(ZSTD_CStreamOutSize()),
+        m_src_offset(0),
+        m_src_size(0)
     {
-        m_input_buffer = {m_tmp_buffer_memory.data(), 0, 0};
-        ZSTD_initDStream(m_zstd_dstream);
+        ZSTD_initDStream(m_context);
+
+        setg(&m_read_area.front(), &m_read_area.front(), &m_read_area.front());
     }
 
     virtual ~ZstdIStreamBuf()
     {
-        ZSTD_freeDStream(m_zstd_dstream);
+        ZSTD_freeDStream(m_context);
     }
 
 protected:
 
     virtual int_type underflow() override
     {
-        char value;
-        std::streamsize read_count = sgetn(&value, 1);
-        return read_count == 0 ? traits_type::eof() : traits_type::to_int_type(value);
-    }
-
-    size_t fill_internal_buffer()
-    {
-        // if all data has been consumed, clean the buffer position
-        if(m_input_buffer.pos == m_input_buffer.size)
-            m_input_buffer.pos = 0;
-
-        // compute buffer destination
-        const char* buffer_ptr = reinterpret_cast<const char*>(m_input_buffer.src) + m_input_buffer.pos;
-        const std::streamsize max_read_count = m_tmp_buffer_memory.size() - m_input_buffer.pos;
-
-        std::streamsize read_count = m_src_buffer->sgetn(const_cast<char*>(buffer_ptr), max_read_count);
-        if(read_count <= 0)
-            return 0;
-
-        m_input_buffer.size = m_input_buffer.pos + read_count;
-
-        return read_count;
-    }
-
-    virtual std::streamsize xsgetn(char_type* dest, std::streamsize dest_size) override
-    {
-        // Load already decompressed data
-        size_t available = m_input_buffer.size - m_input_buffer.pos;
-        size_t copy_count = std::min<size_t>(dest_size, available);
-        if(copy_count > 0)
+        while(true)
         {
-            std::memcpy(dest, reinterpret_cast<const char*>(m_input_buffer.src) + m_input_buffer.pos, copy_count);
-            m_input_buffer.pos += copy_count;
+            if(m_src_offset == m_src_size)
+            {
+                m_src_size = m_source->sgetn(&m_src_buffer.front(), m_src_buffer.size());
+                m_src_offset = 0;
+            }
+
+            if(m_src_size == 0)
+                return traits_type::eof();
+
+            ZSTD_inBuffer input = {&m_src_buffer.front(), m_src_size, m_src_offset};
+            ZSTD_outBuffer output = {&m_read_area.front(), m_read_area.size(), 0};
+            size_t ret = ZSTD_decompressStream(m_context, &output, &input);
+            m_src_offset = input.pos;
+
+            if (ZSTD_isError(ret) != 0)
+                throw std::runtime_error("Error during ZSTD decompression");
+
+            if(output.pos > 0)
+            {
+                setg(&m_read_area.front(), &m_read_area.front(), &m_read_area.front() + output.pos);
+                return traits_type::to_int_type(*gptr());
+            }
         }
 
-        if(copy_count == dest_size)
-            return copy_count;
-
-        // Decompress data
-        ZSTD_outBuffer output = { dest, static_cast<size_t>(dest_size), copy_count };
-        do
-        {
-            size_t read_count = fill_internal_buffer();
-            if(read_count == 0)
-                return static_cast<std::streamsize>(output.pos);
-
-            size_t ret = ZSTD_decompressStream(m_zstd_dstream, &output, &m_input_buffer);
-            if(ZSTD_isError(ret))
-                throw std::logic_error("Decompression error");
-        } while(output.pos < output.size);
-
-        return static_cast<std::streamsize>(output.pos);
+        return traits_type::eof();
     }
 
 private:
-    std::streambuf* m_src_buffer;
-    ZSTD_DStream* m_zstd_dstream;
-    std::vector<char> m_tmp_buffer_memory;
-    ZSTD_inBuffer m_input_buffer;
+    std::streambuf* m_source;
+    ZSTD_DStream* m_context;
+    std::vector<char> m_src_buffer;
+    std::vector<char> m_read_area;
+    size_t m_src_offset;
+    size_t m_src_size;
 };
 
 

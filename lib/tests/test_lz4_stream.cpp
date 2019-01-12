@@ -1,12 +1,5 @@
 
 
-#include <algorithm>
-#include <numeric>
-#include <vector>
-#include <sstream>
-#include <strstream>
-#include <gtest/gtest.h>
-
 #include "../include/compressed_streams/lz4_stream.h"
 
 #include "common.h"
