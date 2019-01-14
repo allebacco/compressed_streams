@@ -1,3 +1,3 @@
 # Compressed streams
 
-Implementation and tests of compressed std streams
+Implementation of C++ std::istream and std::ostream with compression.
