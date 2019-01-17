@@ -21,10 +21,21 @@ ExternalProject_Get_Property(zstd_ext SOURCE_DIR BINARY_DIR)
 
 add_library(zstd STATIC IMPORTED GLOBAL)
 add_dependencies(zstd zstd_ext)
-set_target_properties(zstd
-    PROPERTIES
-        IMPORTED_LOCATION ${BINARY_DIR}/build/cmake/lib/libzstd.a
-)
+
+if(MSVC)
+    set_target_properties(zstd
+        PROPERTIES
+            IMPORTED_LOCATION_DEBUG             ${BINARY_DIR}/build/cmake/lib/Debug/zstd_static.lib
+            IMPORTED_LOCATION_RELEASE           ${BINARY_DIR}/build/cmake/lib/Release/zstd_static.lib
+            IMPORTED_LOCATION_MINSIZEREL        ${BINARY_DIR}/build/cmake/lib/MinSizeRel/zstd_static.lib
+            IMPORTED_LOCATION_RELWITHDEBINFO    ${BINARY_DIR}/build/cmake/lib/RelWithDebInfo/zstd_static.lib
+    )
+else()
+    set_target_properties(zstd
+        PROPERTIES
+            IMPORTED_LOCATION ${BINARY_DIR}/build/cmake/lib/libzstd.a
+    )
+endif()
 
 set(ZSTD_LIBRARY zstd)
 set(ZSTD_INCLUDE_DIR ${SOURCE_DIR}/lib)

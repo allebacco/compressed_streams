@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstring>
+#include <algorithm>
 #include <lz4frame.h>
 
 namespace compressed_streams

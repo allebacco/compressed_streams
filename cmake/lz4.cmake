@@ -25,6 +25,21 @@ set_target_properties(lz4
         IMPORTED_LOCATION ${BINARY_DIR}/contrib/cmake_unofficial/liblz4.a
 )
 
+if(MSVC)
+    set_target_properties(lz4
+        PROPERTIES
+            IMPORTED_LOCATION_DEBUG             ${BINARY_DIR}/contrib/cmake_unofficial/Debug/lz4.lib
+            IMPORTED_LOCATION_RELEASE           ${BINARY_DIR}/contrib/cmake_unofficial/Release/lz4.lib
+            IMPORTED_LOCATION_MINSIZEREL        ${BINARY_DIR}/contrib/cmake_unofficial/MinSizeRel/lz4.lib
+            IMPORTED_LOCATION_RELWITHDEBINFO    ${BINARY_DIR}/contrib/cmake_unofficial/RelWithDebInfo/lz4.lib
+    )
+else()
+    set_target_properties(lz4
+        PROPERTIES
+            IMPORTED_LOCATION ${BINARY_DIR}/contrib/cmake_unofficial/liblz4.a
+    )
+endif()
+
 set(LZ4_LIBRARY lz4)
 set(LZ4_INCLUDE_DIR ${SOURCE_DIR}/lib)
 
