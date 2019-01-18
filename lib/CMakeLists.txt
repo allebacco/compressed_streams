@@ -26,10 +26,23 @@ target_link_libraries(compressed_streams
     PRIVATE
         ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads
 )
+
 target_include_directories(compressed_streams
     PRIVATE 
         ${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${LZ4_INCLUDE_DIR}
 )
+
+if(WIN32)
+    set_target_properties(compressed_streams 
+        PROPERTIES
+            LINK_FLAGS "/WHOLEARCHIVE"
+    )
+else ()
+    set_target_properties(compressed_streams 
+        PROPERTIES
+            LINK_FLAGS "-Wl,--whole-archive"
+    )
+endif ()
 
 
 set(TEST_SOURCES

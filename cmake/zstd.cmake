@@ -9,6 +9,7 @@ ExternalProject_Add(zstd_ext
                       -DZSTD_BUILD_PROGRAMS=OFF 
                       -DZSTD_BUILD_SHARED=OFF 
                       -DZSTD_LEGACY_SUPPORT=OFF
+                      -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
     CMAKE_GENERATOR   ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
     PATCH_COMMAND     ${CMAKE_COMMAND} 
@@ -37,5 +38,5 @@ else()
     )
 endif()
 
-set(ZSTD_LIBRARY zstd)
 set(ZSTD_INCLUDE_DIR ${SOURCE_DIR}/lib)
+set(ZSTD_LIBRARY zstd)
