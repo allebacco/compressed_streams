@@ -29,7 +29,6 @@ static std::string write_at_once_to_stream(const std::vector<char>& data)
     {
         OStreamType compressed_ostream(ostream);
         compressed_ostream.write(data.data(), data.size());
-        compressed_ostream.flush();
     }
     return ostream.str();
 }
@@ -44,8 +43,6 @@ static std::string write_one_byte_at_time_to_stream(const std::vector<char>& dat
 
         for(size_t i=0; i<data.size(); ++i)
             compressed_ostream.write(&data[i], 1);
-
-        compressed_ostream.flush();
     }
 
     return ostream.str();
@@ -71,7 +68,7 @@ template<typename IStreamType>
 static std::vector<char> read_at_once_from_stream(const std::string& serialized, const size_t original_size)
 {
     std::vector<char> read_data(original_size);
-    std::istringstream istream(serialized);
+    std::istringstream istream(serialized, std::ios_base::in|std::ios_base::binary);
     IStreamType compressed_istream(istream);
     compressed_istream.read(read_data.data(), read_data.size());
 
@@ -82,7 +79,7 @@ template<typename IStreamType>
 static std::vector<char> read_one_byte_at_time_from_stream(const std::string& serialized, const size_t original_size)
 {
     std::vector<char> read_data(original_size);
-    std::istringstream istream(serialized);
+    std::istringstream istream(serialized, std::ios_base::in|std::ios_base::binary);
     IStreamType compressed_istream(istream);
 
     for(size_t i=0; i<read_data.size(); ++i)
@@ -95,7 +92,7 @@ template<typename IStreamType>
 static std::vector<char> get_one_byte_at_time_from_stream(const std::string& serialized, const size_t original_size)
 {
     std::vector<char> read_data(original_size);
-    std::istringstream istream(serialized);
+    std::istringstream istream(serialized, std::ios_base::in|std::ios_base::binary);
     IStreamType compressed_istream(istream);
 
     for(size_t i=0; i<read_data.size(); ++i)

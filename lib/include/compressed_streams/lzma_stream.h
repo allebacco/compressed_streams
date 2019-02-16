@@ -2,6 +2,7 @@
 #define COMPRESSED_STREAMS_LZMA_STREAM_H
 
 #include <iostream>
+#include <vector>
 
 namespace compressed_streams
 {
@@ -17,6 +18,8 @@ public:
     LzmaOStream(std::ostream &stream, int compression_level=DEFAULT_COMPRESSION_LEVEL);
 
     virtual ~LzmaOStream();
+
+    static std::vector<char> compress(const std::vector<char>& data);
 };
 
 
@@ -26,6 +29,8 @@ public:
     LzmaIStream(std::istream& stream);
 
     virtual ~LzmaIStream();
+
+    static std::vector<char> decompress(const std::vector<char>& data, size_t expected_size);
 };
 
 
