@@ -8,6 +8,7 @@ set(SOURCES
     src/lz4_stream.cpp
     src/istream_view.cpp
     src/byte_ostream.cpp
+    src/lzma_stream.cpp
     src/internal/strict_fstream.hpp
     src/internal/zstr.hpp
 )
@@ -18,13 +19,14 @@ set(HEADERS
     include/compressed_streams/lz4_stream.h
     include/compressed_streams/istream_view.h
     include/compressed_streams/byte_ostream.h
+    include/compressed_streams/lzma_stream.h
 )
 
 
 add_library(compressed_streams STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(compressed_streams
     PRIVATE
-        ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads
+        ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads lzma
 )
 
 target_include_directories(compressed_streams
@@ -50,6 +52,7 @@ set(TEST_SOURCES
     tests/test_zlib_stream.cpp
     tests/test_lz4_stream.cpp
     tests/test_istream_view.cpp
+    tests/test_lzma_stream.cpp
 )
 
 set(TEST_COMMON
