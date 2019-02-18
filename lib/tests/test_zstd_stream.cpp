@@ -7,7 +7,7 @@
 using namespace compressed_streams;
 
 using ZstdIOStreamTypes = ::testing::Types<std::tuple<ZstdOStream, ZstdIStream>>;
-INSTANTIATE_TYPED_TEST_SUITE_P(ZstdIOStreamTest, IOStreamTest, ZstdIOStreamTypes);
+INSTANTIATE_TYPED_TEST_CASE_P(ZstdIOStreamTest, IOStreamTest, ZstdIOStreamTypes);
 
 
 /*

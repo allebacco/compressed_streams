@@ -2,17 +2,22 @@
 include(ExternalProject)
 
 ExternalProject_Add(lz4_ext
-    GIT_REPOSITORY    https://github.com/lz4/lz4.git
-    GIT_TAG           master
+    URL               https://github.com/lz4/lz4/archive/v1.8.3.tar.gz
     PREFIX            lz4
-    CMAKE_ARGS        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLZ4_BUILD_LEGACY_LZ4C=OFF
-                      -DLZ4_BUNDLED_MODE=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON
+    CMAKE_ARGS        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} 
+                      -DLZ4_BUILD_LEGACY_LZ4C=OFF
+                      -DLZ4_BUNDLED_MODE=OFF 
+                      -DBUILD_SHARED_LIBS=OFF 
+                      -DBUILD_STATIC_LIBS=ON
                       -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
+                      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                      -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+                      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
     CMAKE_GENERATOR   ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
     PATCH_COMMAND     ${CMAKE_COMMAND} 
                         -E copy ${CMAKE_SOURCE_DIR}/cmake/patch/lz4_CMakeLists.txt CMakeLists.txt
-    UPDATE_DISCONNECTED     ON
     INSTALL_COMMAND   ""
 )
 

@@ -7,4 +7,4 @@
 using namespace compressed_streams;
 
 using ZlibIOStreamTypes = ::testing::Types<std::tuple<ZlibOStream, ZlibIStream>>;
-INSTANTIATE_TYPED_TEST_SUITE_P(ZlibIOStreamTest, IOStreamTest, ZlibIOStreamTypes);
+INSTANTIATE_TYPED_TEST_CASE_P(ZlibIOStreamTest, IOStreamTest, ZlibIOStreamTypes);
