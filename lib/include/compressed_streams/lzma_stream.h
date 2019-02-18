@@ -26,11 +26,14 @@ public:
 class LzmaIStream: public std::istream
 {
 public:
+    static constexpr size_t AUTO_SIZE = 0;
+
+public:
     LzmaIStream(std::istream& stream);
 
     virtual ~LzmaIStream();
 
-    static std::vector<char> decompress(const std::vector<char>& data, size_t expected_size);
+    static std::vector<char> decompress(const std::vector<char>& data, size_t expected_size=AUTO_SIZE);
 };
 
 

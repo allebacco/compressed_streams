@@ -196,9 +196,6 @@ protected:
             lzma_ret ret = lzma_code(&m_lzma_stream, LZMA_RUN);
             throw_if_error(ret);
 
-            if(ret == LZMA_STREAM_END)
-                return traits_type::eof();
-
             if(m_lzma_stream.total_out > 0)
             {
                 setg(m_read_area.data(), m_read_area.data(), m_read_area.data() + m_lzma_stream.total_out);
@@ -209,6 +206,9 @@ protected:
 
                 return traits_type::to_int_type(*gptr());
             }
+
+            if(ret == LZMA_STREAM_END)
+                return traits_type::eof();
         }
 
         return traits_type::eof();
@@ -323,18 +323,32 @@ LzmaIStream::~LzmaIStream()
 
 std::vector<char> LzmaIStream::decompress(const std::vector<char>& data, size_t expected_size)
 {
+    if(expected_size == AUTO_SIZE)
+        expected_size = data.size() * 2;
+
     std::vector<char> decompressed_data(expected_size);
 
     uint64_t mem_limit = std::numeric_limits<int>::max();
     size_t decompressed_size = 0;
     size_t in_pos = 0;
-    lzma_ret ret = lzma_stream_buffer_decode(
-        &mem_limit, 0, nullptr,
-        reinterpret_cast<const uint8_t*>(data.data()), &in_pos, data.size(),
-        reinterpret_cast<uint8_t*>(decompressed_data.data()), &decompressed_size, decompressed_data.size()
-    );
 
-    assert(ret == LZMA_OK);
+    lzma_ret ret = LZMA_OK;
+    while(true)
+    {
+        ret = lzma_stream_buffer_decode(
+            &mem_limit, 0, nullptr,
+            reinterpret_cast<const uint8_t*>(data.data()), &in_pos, data.size(),
+            reinterpret_cast<uint8_t*>(decompressed_data.data()), &decompressed_size, decompressed_data.size()
+        );
+
+        if(ret == LZMA_BUF_ERROR)
+            decompressed_data.resize(decompressed_data.size() * 2);
+        else
+            break;
+    }
+
+    if(ret != LZMA_OK)
+        throw std::runtime_error("Error during decompressing");
 
     decompressed_data.resize(decompressed_size);
 

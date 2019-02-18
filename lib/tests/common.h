@@ -18,7 +18,7 @@ static std::vector<char> generate_data_range(const size_t count)
     return data;
 }
 
-static constexpr size_t DATA_SIZE = 100000;
+static constexpr size_t DATA_SIZE = 10000000;
 static const std::vector<char> DATA_REF = generate_data_range(DATA_SIZE);
 
 
