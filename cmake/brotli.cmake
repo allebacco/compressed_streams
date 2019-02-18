@@ -43,4 +43,4 @@ else()
 endif()
 
 set(BROTLI_INCLUDE_DIR ${SOURCE_DIR}/c/include)
-set(BROTLI_LIBRARY brotli_common brotli_dec brotli_enc)
+set(BROTLI_LIBRARY brotli_enc brotli_dec brotli_common)

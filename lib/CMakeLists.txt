@@ -9,6 +9,7 @@ set(SOURCES
     src/istream_view.cpp
     src/byte_ostream.cpp
     src/lzma_stream.cpp
+    src/brotli_stream.cpp
     src/internal/strict_fstream.hpp
     src/internal/zstr.hpp
 )
@@ -20,18 +21,19 @@ set(HEADERS
     include/compressed_streams/istream_view.h
     include/compressed_streams/byte_ostream.h
     include/compressed_streams/lzma_stream.h
+    include/compressed_streams/brotli_stream.h
 )
 
 
 add_library(compressed_streams STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(compressed_streams
-    PRIVATE
-        ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads lzma
+    PUBLIC
+        ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads lzma ${BROTLI_LIBRARY}
 )
 
 target_include_directories(compressed_streams
     PRIVATE 
-        ${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${LZ4_INCLUDE_DIR}
+        ${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${LZ4_INCLUDE_DIR} ${BROTLI_INCLUDE_DIR}
 )
 
 if(WIN32)
@@ -39,12 +41,12 @@ if(WIN32)
         PROPERTIES
             LINK_FLAGS "/WHOLEARCHIVE"
     )
-else ()
+else()
     set_target_properties(compressed_streams 
         PROPERTIES
             LINK_FLAGS "-Wl,--whole-archive"
     )
-endif ()
+endif()
 
 
 set(TEST_SOURCES
@@ -53,6 +55,7 @@ set(TEST_SOURCES
     tests/test_lz4_stream.cpp
     tests/test_istream_view.cpp
     tests/test_lzma_stream.cpp
+    tests/test_brotli_stream.cpp
 )
 
 set(TEST_COMMON
