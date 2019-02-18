@@ -14,3 +14,12 @@ TEST(Brotli, Compression_Decompression)
     EXPECT_EQ(DATA_REF, ref_decompression);
 }
 
+TEST(Brotli, StreamCompression_Decompression)
+{
+    std::string serialized = write_at_once_to_stream<BrotliOStream>(DATA_REF);
+    std::vector<char> test_serialized(serialized.begin(), serialized.end());
+
+    std::vector<char> ref_decompression = BrotliIStream::decompress(test_serialized, DATA_REF.size()*2);
+
+    EXPECT_EQ(DATA_REF, ref_decompression);
+}
