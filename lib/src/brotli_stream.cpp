@@ -124,7 +124,76 @@ private:
 };
 
 
+class BrotliIStreamBuf final: public std::streambuf
+{
+public:
+    BrotliIStreamBuf(std::streambuf* source, size_t internal_buffer_size=BUFSIZ):
+        m_source(source),
+        m_state(BrotliDecoderCreateInstance(nullptr, nullptr, nullptr)),
+        m_src_buffer(internal_buffer_size),
+        m_src_available(0),
+        m_src_ptr(nullptr)
+    {
+        setg(nullptr, nullptr, nullptr);
+    }
 
+    virtual ~BrotliIStreamBuf()
+    {
+        BrotliDecoderDestroyInstance(m_state);
+    }
+
+protected:
+
+    virtual int_type underflow() override
+    {
+        while(true)
+        {
+            if(m_src_available == 0)
+            {
+                m_src_available = m_source->sgetn(&m_src_buffer.front(), m_src_buffer.size());
+                m_src_ptr = reinterpret_cast<const uint8_t*>(&m_src_buffer.front());
+            }
+
+            if(m_src_available == 0)
+                return traits_type::eof();
+
+            size_t available_output = 0;
+            size_t total_output = 0;
+            BrotliDecoderResult ret = BrotliDecoderDecompressStream(
+                m_state,
+                &m_src_available, &m_src_ptr,
+                &available_output, nullptr, &total_output
+            );
+
+            if(ret == BROTLI_DECODER_RESULT_ERROR)
+                throw std::runtime_error("Error during Brotli decompression");
+
+            if(BrotliDecoderHasMoreOutput(m_state))
+            {
+                size_t output_size = 0;
+                const uint8_t* brotli_buffer = BrotliDecoderTakeOutput(m_state, &output_size);
+                char* read_area_ptr = reinterpret_cast<char*>(const_cast<uint8_t*>(brotli_buffer));
+                setg(read_area_ptr, read_area_ptr, read_area_ptr + output_size);
+                return traits_type::to_int_type(*gptr());
+            }
+            else
+            {
+                // No more data to decompress
+                if(ret == BROTLI_DECODER_RESULT_SUCCESS)
+                    return traits_type::eof();
+            }
+        }
+
+        return traits_type::eof();
+    }
+
+private:
+    std::streambuf* m_source;
+    BrotliDecoderState* m_state;
+    std::vector<char> m_src_buffer;
+    size_t m_src_available;
+    const uint8_t* m_src_ptr;
+};
 
 
 BrotliOStream::BrotliOStream(std::ostream& stream, int compression_level):
@@ -158,7 +227,9 @@ std::vector<char> BrotliOStream::compress(const std::vector<char>& data, int com
     return compressed_data;
 }
 
-BrotliIStream::BrotliIStream(std::istream& stream)
+
+BrotliIStream::BrotliIStream(std::istream& stream):
+    std::istream(new BrotliIStreamBuf(stream.rdbuf()))
 {}
 
 BrotliIStream::~BrotliIStream()

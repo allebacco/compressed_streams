@@ -6,6 +6,11 @@
 using namespace compressed_streams;
 
 
+using BrotliIOStreamTypes = ::testing::Types<std::tuple<BrotliOStream, BrotliIStream>>;
+INSTANTIATE_TYPED_TEST_CASE_P(BrotliIOStreamTest, IOStreamTest, BrotliIOStreamTypes);
+
+
+
 TEST(Brotli, Compression_Decompression)
 {
     std::vector<char> ref_compression = BrotliOStream::compress(DATA_REF);
@@ -23,3 +28,14 @@ TEST(Brotli, StreamCompression_Decompression)
 
     EXPECT_EQ(DATA_REF, ref_decompression);
 }
+
+TEST(Brotli, Compression_StreamDecompression)
+{
+    std::vector<char> ref_compressed = BrotliOStream::compress(DATA_REF);
+    std::string compressed(ref_compressed.begin(), ref_compressed.end());
+
+    std::vector<char> test_decompressed = read_at_once_from_stream<BrotliIStream>(compressed, DATA_REF.size());
+
+    EXPECT_EQ(DATA_REF, test_decompressed);
+}
+
