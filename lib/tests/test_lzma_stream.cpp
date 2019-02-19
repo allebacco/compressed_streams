@@ -7,7 +7,7 @@ using namespace compressed_streams;
 
 
 using LzmaIOStreamTypes = ::testing::Types<std::tuple<LzmaOStream, LzmaIStream>>;
-INSTANTIATE_TYPED_TEST_SUITE_P(LzmaIOStreamTest, IOStreamTest, LzmaIOStreamTypes);
+INSTANTIATE_TYPED_TEST_CASE_P(LzmaIOStreamTest, IOStreamTest, LzmaIOStreamTypes);
 
 
 TEST(Lzma, Compression_Decompression)

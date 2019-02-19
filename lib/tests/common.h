@@ -107,12 +107,9 @@ static std::vector<char> get_one_byte_at_time_from_stream(const std::string& ser
 
 template<typename IOStreamTypes>
 class IOStreamTest : public ::testing::Test
-{
-public:
+{};
 
-};
-
-TYPED_TEST_SUITE_P(IOStreamTest);
+TYPED_TEST_CASE_P(IOStreamTest);
 
 
 TYPED_TEST_P(IOStreamTest, WriteAllAtOnce)
@@ -175,7 +172,7 @@ TYPED_TEST_P(IOStreamTest, GetOneByteAtATime)
 }
 
 
-REGISTER_TYPED_TEST_SUITE_P(IOStreamTest,
+REGISTER_TYPED_TEST_CASE_P(IOStreamTest,
                                 WriteAllAtOnce,
                                 WriteOneByteAtATime,
                                 PutOneByteAtATime,

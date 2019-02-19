@@ -2,17 +2,19 @@
 include(ExternalProject)
 
 ExternalProject_Add(gtest_ext
-    GIT_REPOSITORY          https://github.com/google/googletest.git
-    GIT_TAG                 master
+    URL                     https://github.com/google/googletest/archive/release-1.8.1.tar.gz
     PREFIX                  googletest
     CMAKE_ARGS              -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                             -DBUILD_GMOCK=OFF
                             -DBUILD_SHARED_LIBS=OFF
                             -Dgtest_force_shared_crt=ON
                             -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
+                            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                            -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+                            -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
     CMAKE_GENERATOR         ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
-    UPDATE_DISCONNECTED     ON
     INSTALL_COMMAND         ""
 )
 
@@ -27,34 +29,34 @@ add_dependencies(gtest_main gtest_ext)
 if(MSVC)
     set_target_properties(gtest
         PROPERTIES
-        IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/lib/Debug/gtestd.lib
-        IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/lib/Release/gtest.lib
-        IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/lib/MinSizeRel/gtest.lib
-        IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/lib/RelWithDebInfo/gtest.lib
+        IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/googletest/Debug/gtestd.lib
+        IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/googletest/Release/gtest.lib
+        IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/googletest/MinSizeRel/gtest.lib
+        IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/googletest/RelWithDebInfo/gtest.lib
     )
 
     set_target_properties(gtest_main
         PROPERTIES
-            IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/lib/Debug/gtest_maind.lib
-            IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/lib/Release/gtest_main.lib
-            IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/lib/MinSizeRel/gtest_main.lib
-            IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/lib/RelWithDebInfo/gtest_main.lib
+            IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/googletest/Debug/gtest_maind.lib
+            IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/googletest/Release/gtest_main.lib
+            IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/googletest/MinSizeRel/gtest_main.lib
+            IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/googletest/RelWithDebInfo/gtest_main.lib
     )
 else()
     set_target_properties(gtest
         PROPERTIES
-        IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/lib/libgtestd.a
-        IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/lib/libgtest.a
-        IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/lib/libgtest.a
-        IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/lib/libgtest.a
+        IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/googletest/libgtestd.a
+        IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/googletest/libgtest.a
+        IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/googletest/libgtest.a
+        IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/googletest/libgtest.a
     )
 
     set_target_properties(gtest_main
         PROPERTIES
-            IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/lib/libgtest_maind.a
-            IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/lib/libgtest_main.a
-            IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/lib/libgtest_main.a
-            IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/lib/libgtest_main.a
+            IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/googletest/libgtest_maind.a
+            IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/googletest/libgtest_main.a
+            IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/googletest/libgtest_main.a
+            IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/googletest/libgtest_main.a
     )
 endif()
 
