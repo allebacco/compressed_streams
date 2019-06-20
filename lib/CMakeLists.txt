@@ -28,12 +28,12 @@ set(HEADERS
 add_library(compressed_streams STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(compressed_streams
     PUBLIC
-        ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads lzma ${BROTLI_LIBRARY}
+        ${ZSTD_LIBRARY} ${ZLIB_LIBRARY} ${LZ4_LIBRARY} Threads::Threads lzma ${BROTLI_LIBRARY} ${SNAPPY_LIBRARY}
 )
 
 target_include_directories(compressed_streams
     PRIVATE 
-        ${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${LZ4_INCLUDE_DIR} ${BROTLI_INCLUDE_DIR}
+        ${ZSTD_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${LZ4_INCLUDE_DIR} ${BROTLI_INCLUDE_DIR} ${SNAPPY_INCLUDE_DIR}
 )
 
 if(WIN32)

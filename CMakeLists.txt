@@ -11,6 +11,7 @@ include(cmake/zstd.cmake)
 include(cmake/zlib.cmake)
 include(cmake/lz4.cmake)
 include(cmake/brotli.cmake)
+include(cmake/snappy.cmake)
 
 enable_testing()
 
