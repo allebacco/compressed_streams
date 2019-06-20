@@ -29,18 +29,14 @@ add_dependencies(gtest_main gtest_ext)
 if(MSVC)
     set_target_properties(gtest
         PROPERTIES
-        IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/googletest/Debug/gtestd.lib
-        IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/googletest/Release/gtest.lib
-        IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/googletest/MinSizeRel/gtest.lib
-        IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/googletest/RelWithDebInfo/gtest.lib
+        IMPORTED_LOCATION_DEBUG     ${BINARY_DIR}/googletest/gtestd.lib
+        IMPORTED_LOCATION           ${BINARY_DIR}/googletest/gtest.lib
     )
 
     set_target_properties(gtest_main
         PROPERTIES
-            IMPORTED_LOCATION_DEBUG          ${BINARY_DIR}/googletest/Debug/gtest_maind.lib
-            IMPORTED_LOCATION_RELEASE        ${BINARY_DIR}/googletest/Release/gtest_main.lib
-            IMPORTED_LOCATION_MINSIZEREL     ${BINARY_DIR}/googletest/MinSizeRel/gtest_main.lib
-            IMPORTED_LOCATION_RELWITHDEBINFO ${BINARY_DIR}/googletest/RelWithDebInfo/gtest_main.lib
+            IMPORTED_LOCATION_DEBUG     ${BINARY_DIR}/googletest/gtest_maind.lib
+            IMPORTED_LOCATION           ${BINARY_DIR}/googletest/gtest_main.lib
     )
 else()
     set_target_properties(gtest

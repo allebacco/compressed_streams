@@ -1,6 +1,8 @@
 #ifndef WINDOWS_CONFIG_H
 #define WINDOWS_CONFIG_H
 
+#include <windows.h>
+
 /* config.h for compiling liblzma (*not* the whole XZ Utils) with MSVC 2017 */
 
 /* Prefix for symbols exported by tuklib_*.c files */

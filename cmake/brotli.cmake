@@ -26,7 +26,18 @@ add_dependencies(brotli_dec brotli_ext)
 add_dependencies(brotli_enc brotli_ext)
 
 if(MSVC)
-    # TODO Add windows support
+    set_target_properties(brotli_common
+        PROPERTIES
+            IMPORTED_LOCATION ${BINARY_DIR}/brotlicommon-static.lib
+    )
+    set_target_properties(brotli_dec
+        PROPERTIES
+            IMPORTED_LOCATION ${BINARY_DIR}/brotlidec-static.lib
+    )
+    set_target_properties(brotli_enc
+        PROPERTIES
+            IMPORTED_LOCATION ${BINARY_DIR}/brotlienc-static.lib
+    )
 else()
     set_target_properties(brotli_common
         PROPERTIES

@@ -28,10 +28,7 @@ add_dependencies(zstd zstd_ext)
 if(MSVC)
     set_target_properties(zstd
         PROPERTIES
-            IMPORTED_LOCATION_DEBUG             ${BINARY_DIR}/build/cmake/lib/Debug/zstd_static.lib
-            IMPORTED_LOCATION_RELEASE           ${BINARY_DIR}/build/cmake/lib/Release/zstd_static.lib
-            IMPORTED_LOCATION_MINSIZEREL        ${BINARY_DIR}/build/cmake/lib/MinSizeRel/zstd_static.lib
-            IMPORTED_LOCATION_RELWITHDEBINFO    ${BINARY_DIR}/build/cmake/lib/RelWithDebInfo/zstd_static.lib
+            IMPORTED_LOCATION ${BINARY_DIR}/build/cmake/lib/zstd_static.lib
     )
 else()
     set_target_properties(zstd

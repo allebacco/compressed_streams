@@ -23,15 +23,13 @@ add_dependencies(zlib zlib_ext)
 if(MSVC)
     set_target_properties(zlib
         PROPERTIES
-            IMPORTED_LOCATION_DEBUG             ${BINARY_DIR}/Debug/zlibstaticd.lib
-            IMPORTED_LOCATION_RELEASE           ${BINARY_DIR}/Release/zlibstatic.lib
-            IMPORTED_LOCATION_MINSIZEREL        ${BINARY_DIR}/MinSizeRel/zlibstatic.lib
-            IMPORTED_LOCATION_RELWITHDEBINFO    ${BINARY_DIR}/RelWithDebInfo/zlibstatic.lib
+            IMPORTED_LOCATION_DEBUG     ${BINARY_DIR}/zlibstaticd.lib
+            IMPORTED_LOCATION           ${BINARY_DIR}/zlibstatic.lib
     )
 else()
     set_target_properties(zlib
         PROPERTIES
-            IMPORTED_LOCATION             ${BINARY_DIR}/libz.a
+            IMPORTED_LOCATION   ${BINARY_DIR}/libz.a
     )
 endif()
 
