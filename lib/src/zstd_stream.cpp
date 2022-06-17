@@ -105,8 +105,8 @@ public:
     ZstdIStreamBuf(std::streambuf* source):
         m_source(source),
         m_context(ZSTD_createDStream()),
-        m_src_buffer(ZSTD_CStreamInSize()),
-        m_read_area(ZSTD_CStreamOutSize()),
+        m_src_buffer(ZSTD_DStreamInSize()),
+        m_read_area(ZSTD_DStreamOutSize()),
         m_src_offset(0),
         m_src_size(0)
     {
